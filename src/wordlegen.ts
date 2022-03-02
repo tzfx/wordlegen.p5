@@ -10,14 +10,18 @@ import { wordlist } from "./words-wordle";
         .filter((v: number) => v !== null);
 };
 
+const showLetters = (): boolean =>
+    !!(document.getElementById("showLetters") as any)?.checked;
+
 const sketch = (p5: p5) => {
+    let words = wordlist;
+
     const padding = 5;
     const height = 420;
     const width = 350;
     const square = width / 5 - padding * 2;
     const upify = (i: number) => i + 1;
-    const chooseWord = () =>
-        wordlist[Math.floor(Math.random() * wordlist.length)];
+    const chooseWord = () => words[Math.floor(Math.random() * words.length)];
 
     let solved = false;
     let word: string;
@@ -91,7 +95,7 @@ const sketch = (p5: p5) => {
                 none.push(c);
                 drawRect(i + 1, iteration, "#787c7e");
             }
-            drawLetter(c, i + 1, iteration);
+            if (showLetters()) drawLetter(c, i + 1, iteration);
         });
 
     /**
@@ -127,10 +131,8 @@ const sketch = (p5: p5) => {
         });
         search += "$";
         const regex = new RegExp(search);
-        const narrowed = wordlist.filter(
-            (w) => w.match(regex) && !already.includes(w)
-        );
-        return narrowed[Math.floor(Math.random() * narrowed.length)];
+        words = words.filter((w) => w.match(regex) && !already.includes(w));
+        return words[Math.floor(Math.random() * words.length)];
     };
 
     const checkSolved = () => exact.length === 5;
@@ -156,6 +158,7 @@ const sketch = (p5: p5) => {
             exact = [];
             already = [];
             solved = false;
+            words = wordlist;
             word = chooseWord();
         }
         guess = newGuess();

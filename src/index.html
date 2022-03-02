@@ -3,7 +3,14 @@
         <title><%= htmlWebpackPlugin.options.title %></title>
     </head>
     <body>
-        <div style="width: 100%; text-align: center">
+        <div
+            style="
+                width: 100%;
+                text-align: center;
+                font-family: 'Helvetica Neue', 'Segoe UI', Tahoma, Geneva,
+                    Verdana, sans-serif;
+            "
+        >
             <h1>
                 WordleGen.<a
                     href="https://p5js.org"
@@ -13,6 +20,10 @@
                 >
             </h1>
             <main></main>
+            <div>
+                <label for="showLetters">Show Letters</label>
+                <input id="showLetters" type="checkbox" />
+            </div>
         </div>
     </body>
 </html>
