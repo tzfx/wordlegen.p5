@@ -1,9 +1,9 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-module.exports = {
+module.exports = (env) => ({
     entry: "./src/wordlegen.ts",
-    mode: "development",
+    mode: env.production ? "production" : "development",
     module: {
         rules: [
             {
@@ -26,4 +26,4 @@ module.exports = {
         filename: "bundle.js",
         path: path.resolve(__dirname, "dist"),
     },
-};
+});

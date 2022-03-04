@@ -1,5 +1,5 @@
 import * as p5 from "p5";
-import { wordlist } from "./words-wordle";
+import { wordlist } from "./wordlists/words-wordle";
 
 // Patch string for multi-index find.
 // Will return a set of indices of exact matches.
@@ -16,10 +16,18 @@ const showLetters = (): boolean =>
 const sketch = (p5: p5) => {
     let words = wordlist;
 
-    const padding = 5;
-    const height = 420;
-    const width = 350;
-    const square = width / 5 - padding * 2;
+    const PADDING = 5;
+    const HEIGHT = 420;
+    const WIDTH = 350;
+    const WORDLENGTH = 5;
+    const GUESSES = 6;
+    const SQUARE = WIDTH / WORDLENGTH - PADDING * 2;
+
+    const GREEN = "#6aaa64";
+    const YELLOW = "#c9b458";
+    const DARK_GREY = "#787c7e";
+    const OUTLINE = "#d3d6da";
+
     const upify = (i: number) => i + 1;
     const chooseWord = () => words[Math.floor(Math.random() * words.length)];
 
@@ -37,13 +45,13 @@ const sketch = (p5: p5) => {
     const drawRect = (col: number, row: number, color?: string) =>
         p5
             .beginShape()
-            .stroke("#d3d6da")
+            .stroke(OUTLINE)
             .fill(color ?? "white")
             .rect(
-                padding + square * col - square,
-                padding + square * row - square,
-                square - padding,
-                square - padding
+                PADDING + SQUARE * col - SQUARE,
+                PADDING + SQUARE * row - SQUARE,
+                SQUARE - PADDING,
+                SQUARE - PADDING
             )
             .endShape();
 
@@ -54,23 +62,23 @@ const sketch = (p5: p5) => {
         color?: string
     ) =>
         p5
-            .textFont("Helvetica Neue", 32)
+            .textFont("Helvetica", 32)
             .textAlign(p5.CENTER, p5.CENTER)
             .textStyle(p5.BOLD)
             .fill("white")
             .noStroke()
             .text(
                 letter.toUpperCase(),
-                padding / 2 + square * col - square / 2,
-                padding / 2 + square * row - square / 2
+                PADDING / 2 + SQUARE * col - SQUARE / 2,
+                PADDING / 2 + SQUARE * row - SQUARE / 2
             );
 
     const drawGrid = () =>
-        new Array(6)
+        new Array(GUESSES)
             .fill(1)
             .map((_, i) => upify(i))
             .forEach((i) =>
-                new Array(5)
+                new Array(WORDLENGTH)
                     .fill(1)
                     .map((_, j) => upify(j))
                     .forEach((j) => drawRect(j, i))
@@ -84,16 +92,16 @@ const sketch = (p5: p5) => {
                 if (hits.some((n) => n === i)) {
                     exact = exact.filter((v) => v != c + i);
                     exact.push(c + i);
-                    drawRect(i + 1, iteration, "#6aaa64");
+                    drawRect(i + 1, iteration, GREEN);
                 } else {
                     near = near.filter((v) => v != c + i);
                     near.push(c + i);
-                    drawRect(i + 1, iteration, "#c9b458");
+                    drawRect(i + 1, iteration, YELLOW);
                 }
             } else {
                 none = none.filter((v) => v != c);
                 none.push(c);
-                drawRect(i + 1, iteration, "#787c7e");
+                drawRect(i + 1, iteration, DARK_GREY);
             }
             if (showLetters()) drawLetter(c, i + 1, iteration);
         });
@@ -107,32 +115,43 @@ const sketch = (p5: p5) => {
             return chooseWord();
         }
         let search = "^";
-        ["0", "1", "2", "3", "4"].forEach((pos) => {
-            // Exact matches.
-            const e = exact
-                .filter((v) => v[1] === pos)
-                .map((v) => v[0])
-                .join("");
-            // Maybe matches.
-            const m = near
-                .filter((v) => v[1] !== pos)
-                .map((v) => v[0])
-                .join("");
-            // Never matches.
-            const n = none.join("").concat(m);
-            if (e.length > 0) {
-                search += e;
-            } else {
-                if (n.length > 0 && m.length > 0) {
-                    search += `([${m + e}]{1}|[^${n}]{1})`;
-                } else if (n.length > 0) search += `[^${n}]{1}`;
-                else if (m.length > 0) search += `[${m + e}]{1}`;
-            }
-        });
+        new Array(WORDLENGTH)
+            .fill(1)
+            .map((_, i) => "" + i)
+            .forEach((pos) => {
+                // Exact matches.
+                const e = exact
+                    .filter((v) => v[1] === pos)
+                    .map((v) => v[0])
+                    .join("");
+                // Maybe matches.
+                const m = near
+                    .filter((v) => v[1] !== pos)
+                    .map((v) => v[0])
+                    .join("");
+                // Never matches.
+                const n = none
+                    .join("")
+                    .concat(m)
+                    .concat(
+                        near
+                            .filter((v) => v[1] === pos)
+                            .map((v) => v[0])
+                            .join("")
+                    );
+                if (e.length > 0) {
+                    search += e;
+                } else {
+                    if (n.length > 0 && m.length > 0) {
+                        search += `([${m + e}]{1}|[^${n}]{1})`;
+                    } else if (n.length > 0) search += `[^${n}]`;
+                    else if (m.length > 0) search += `[${m + e}]`;
+                }
+            });
         search += "$";
         const regex = new RegExp(search);
         words = words.filter((w) => w.match(regex) && !already.includes(w));
-        return words[Math.floor(Math.random() * words.length)];
+        return chooseWord();
     };
 
     const checkSolved = () => exact.length === 5;
@@ -140,7 +159,7 @@ const sketch = (p5: p5) => {
     p5.setup = () => {
         iteration = 1;
         p5.frameRate(1);
-        p5.createCanvas(width, height);
+        p5.createCanvas(WIDTH, HEIGHT);
         p5.background("white");
         // Setup grid.
         drawGrid();

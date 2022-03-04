@@ -5,6 +5,7 @@
     "private  ": true,
     "scripts": {
         "build": "webpack",
+        "build:prod": "webpack --env production",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "adamv.stadler@gmail.com",
