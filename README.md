@@ -2,6 +2,8 @@
 
 A quick little wordle visualization. Attempts to solve a random wordle.
 
+You can see a live demo on gh-pages: https://tzfx.github.io/wordlegen.p5/dist/
+
 ## To Build
 
 ```bash
